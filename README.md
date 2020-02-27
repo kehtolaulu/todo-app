@@ -1,2 +1,2 @@
 ## Run server:
-`node server.js`
+```node server.js```

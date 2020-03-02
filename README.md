@@ -13,7 +13,7 @@ To install Node 12.16:
 ### `nvm install 12.16`
 
 To run server:
-### `nodejs server.js`
+### `node server.js`
 
 This runs server on [http://localhost:3030](http://localhost:3030).
 

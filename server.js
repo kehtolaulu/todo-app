@@ -1,76 +1,65 @@
-var fs = require('fs');
-var path = require('path');
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
 
-var TODOS_FILE = path.join(__dirname, 'todos.json');
+const TODOS_FILE = path.join(__dirname, 'todos.json');
+
+const logError = error => {
+  if (error != null) {
+    console.error(error);
+  }
+};
 
 app.set('port', (process.env.PORT || 3030));
 
 // app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(function(req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Cache-Control', 'no-cache');
-    next();
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
 });
 
-app.get('/api/todos', function(req, res) {
-  fs.readFile(TODOS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
+app.get('/api/todos', (req, res) => {
+  fs.readFile(TODOS_FILE, (err, data) => {
+    logError(err);
     res.json(JSON.parse(data));
   });
 });
 
-app.post('/api/todos', function(req, res) {
-  fs.readFile(TODOS_FILE, function(err, data) {
+app.post('/api/todos', (req, res) => {
+  fs.readFile(TODOS_FILE, (err, data) => {
     if (err) {
       console.error(err);
-      process.exit(1);
+      throw new Error();
     }
-    var todos = JSON.parse(data);
-    var newTodo = {
+    let todos = JSON.parse(data);
+    let newTodo = {
       id: Date.now(),
       text: req.body.text,
     };
     todos.push(newTodo);
-    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), function(err) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-      res.json(todos);
-    });
+    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), logError);
+    res.json(newTodo);
   });
 });
 
-app.delete('/api/todos', function(req, res) {
-  fs.readFile(TODOS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    var todos = JSON.parse(data);
-    todos = todos.filter(todo => todo.id !== req.body.id);
-    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), function(err) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-      res.json(todos);
-    });
+app.delete('/api/todos/:id', (req, res) => {
+  let id = parseInt(req.params.id);
+  fs.readFile(TODOS_FILE, (err, data) => {
+    logError(err);
+    let todos = JSON.parse(data);
+    todos = todos.filter(todo => todo.id !== id);
+    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), logError);
   });
 });
 
-
-app.listen(app.get('port'), function() {
+app.listen(app.get('port'), () => {
   console.log('Server started: http://localhost:' + app.get('port') + '/');
 });

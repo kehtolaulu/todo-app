@@ -26,16 +26,22 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, OPTIONS, PUT, DELETE"
   );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("Cache-Control", "no-cache");
   next();
 });
 
 app.get("/todos", (req, res) => {
-  fs.readFile(TODOS_FILE, (err, data) => {
+  try {
+    var jwtUser = jwt.verify(req.headers['authorization'], process.env.PRIVATE_KEY);
+    fs.readFile(USERS_FILE, (err, data) => {
+      logError(err);
+      let users = JSON.parse(data);
+      res.json(Object.values(users[1].todos));
+    });
+  } catch(err) {
     logError(err);
-    res.json(JSON.parse(data));
-  });
+  }
 });
 
 app.post("/todos", (req, res) => {
@@ -82,7 +88,7 @@ app.post("/login", (req, res) => {
         }
       );
     } else {
-      res.status(401).send({ error: 'Something failed!' });
+      res.status(401).send({ error: 'Something\'s wrong!' });
     };
   });
 });

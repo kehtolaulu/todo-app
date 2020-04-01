@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const USERS_FILE = path.join(__dirname, "users.json");
 
@@ -84,6 +85,14 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.listen(app.get("port"), () => {
-    console.log("Server started: http://localhost:" + app.get("port") + "/");
-});
+async function start() {
+    try {
+        await mongoose.connect("mongodb://127.0.0.1/my_database", { useNewUrlParser: true, useUnifiedTopology: true });
+        app.listen(app.get("port"), () => console.log("Server started: http://localhost:" + app.get("port") + "/"))
+    } catch (e) {
+        console.log('Server Error', e.message)
+        process.exit(1)
+    }
+}
+
+start()

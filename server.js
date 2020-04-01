@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const app = express();
 const jwt = require("jsonwebtoken");
 
-const TODOS_FILE = path.join(__dirname, "todos.json");
 const USERS_FILE = path.join(__dirname, "users.json");
 
 require('dotenv').config({ path: 'var.env' });
@@ -58,12 +57,19 @@ app.delete("/todos/:id", async (req, res) => {
     users.updateUser(user);
 });
 
+app.put("/todos/:id", async (req, res) => {
+    var user = await users.reload(users.authenticate(req));
+    let id = req.params.id;
+    let newToDo = user.todos[id];
+    newToDo.status = req.body.status;
+    users.updateToDo(user, user.todos[id]);
+})
+
 app.post("/login", async (req, res) => {
     let { username, password } = req.body;
     let user = await users.findUser(username);
     if (user && user.password == password) {
-        jwt.sign(
-            { id: user.id, username: user.username },
+        jwt.sign({ id: user.id, username: user.username },
             process.env.PRIVATE_KEY,
             (err, token) => {
                 if (err) {

@@ -10,6 +10,7 @@ const USERS_FILE = path.join(__dirname, "users.json");
 
 require('dotenv').config({ path: 'var.env' });
 const users = require("./users");
+var cors = require('cors');
 
 const logError = error => {
     if (error != null) {
@@ -32,24 +33,24 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get("/todos", (req, res) => {
-    try {
-        let jwtUser = users.authenticate(req);
-        fs.readFile(USERS_FILE, (err, data) => {
-            logError(err);
-            let users = JSON.parse(data);
-            res.json(Object.values(users[jwtUser.id].todos));
-        });
-    } catch (err) {
-        logError(err);
-    }
-});
+// app.get("/todos", (req, res) => {
+//     try {
+//         let jwtUser = users.authenticate(req);
+//         fs.readFile(USERS_FILE, (err, data) => {
+//             logError(err);
+//             let users = JSON.parse(data);
+//             res.json(Object.values(users[jwtUser.id].todos));
+//         });
+//     } catch (err) {
+//         logError(err);
+//     }
+// });
 
-app.post("/todos", async (req, res) => {
-    let user = await users.reload(users.authenticate(req));
-    let newToDo = users.createToDo(user, req.body.text);
-    res.json(newToDo);
-});
+// app.post("/todos", async (req, res) => {
+//     let user = await users.reload(users.authenticate(req));
+//     let newToDo = users.createToDo(user, req.body.text);
+//     res.json(newToDo);
+// });
 
 app.delete("/todos/:id", async (req, res) => {
     var user = await users.reload(users.authenticate(req));
@@ -68,6 +69,8 @@ app.put("/todos/:id", async (req, res) => {
 
 app.use('/login', require('./routes/login'));
 app.use('/signup', require('./routes/signup'));
+app.use('/todos', require('./routes/todos'));
+app.use(cors());
 
 async function start() {
     try {

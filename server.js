@@ -66,33 +66,20 @@ app.put("/todos/:id", async (req, res) => {
     users.updateToDo(user, user.todos[id]);
 })
 
-app.post("/login", async (req, res) => {
-    let { username, password } = req.body;
-    let user = await users.findUser(username);
-    if (user && user.password == password) {
-        jwt.sign({ id: user.id, username: user.username },
-            process.env.PRIVATE_KEY,
-            (err, token) => {
-                if (err) {
-                    res.status(401).send(err);
-                } else {
-                    res.json({ token: token });
-                }
-            }
-        );
-    } else {
-        res.status(401).send({ error: 'Something\'s wrong!' });
-    }
-});
+app.use('/login', require('./routes/login'));
+app.use('/signup', require('./routes/signup'));
 
 async function start() {
     try {
-        await mongoose.connect("mongodb://127.0.0.1/my_database", { useNewUrlParser: true, useUnifiedTopology: true });
-        app.listen(app.get("port"), () => console.log("Server started: http://localhost:" + app.get("port") + "/"))
+        await mongoose.connect(
+            "mongodb://127.0.0.1:27017/",
+            { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
+        );
+        app.listen(app.get("port"), () => console.log("Server started: http://localhost:" + app.get("port") + "/"));
     } catch (e) {
-        console.log('Server Error', e.message)
-        process.exit(1)
+        console.log('Server Error', e.message);
+        process.exit(1);
     }
 }
 
-start()
+start();

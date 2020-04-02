@@ -39,6 +39,7 @@ router.post(
         } catch (e) {
             res.status(401).json({ message: 'Something went wrong' });
         }
-    });
+    }
+);
 
 module.exports = router;

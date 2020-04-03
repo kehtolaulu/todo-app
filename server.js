@@ -5,15 +5,15 @@ const bodyParser = require("body-parser");
 const app = express();
 const jwt = require("jsonwebtoken");
 
-const TODOS_FILE = path.join(__dirname, "todos.json");
 const USERS_FILE = path.join(__dirname, "users.json");
 
 require('dotenv').config({ path: 'var.env' });
+const users = require("./users");
 
 const logError = error => {
-  if (error != null) {
-    console.error(error);
-  }
+    if (error != null) {
+        console.error(error);
+    }
 };
 
 app.set("port", process.env.PORT || 3030);
@@ -21,78 +21,69 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS, PUT, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "*");
-  res.setHeader("Cache-Control", "no-cache");
-  next();
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET, POST, OPTIONS, PUT, DELETE"
+    );
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Cache-Control", "no-cache");
+    next();
 });
 
 app.get("/todos", (req, res) => {
-  try {
-    var jwtUser = jwt.verify(req.headers['authorization'], process.env.PRIVATE_KEY);
-    fs.readFile(USERS_FILE, (err, data) => {
-      logError(err);
-      let users = JSON.parse(data);
-      res.json(Object.values(users[1].todos));
-    });
-  } catch(err) {
-    logError(err);
-  }
+    try {
+        let jwtUser = users.authenticate(req);
+        fs.readFile(USERS_FILE, (err, data) => {
+            logError(err);
+            let users = JSON.parse(data);
+            res.json(Object.values(users[jwtUser.id].todos));
+        });
+    } catch (err) {
+        logError(err);
+    }
 });
 
-app.post("/todos", (req, res) => {
-  fs.readFile(TODOS_FILE, (err, data) => {
-    logError(err);
-    let todos = JSON.parse(data);
-    let newTodo = {
-      id: Date.now(),
-      text: req.body.text
-    };
-    todos.push(newTodo);
-    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), logError);
-    res.json(newTodo);
-  });
+app.post("/todos", async (req, res) => {
+    let user = await users.reload(users.authenticate(req));
+    let newToDo = users.createToDo(user, req.body.text);
+    res.json(newToDo);
 });
 
-app.delete("/todos/:id", (req, res) => {
-  let id = parseInt(req.params.id);
-  fs.readFile(TODOS_FILE, (err, data) => {
-    logError(err);
-    let todos = JSON.parse(data);
-    todos = todos.filter(todo => todo.id !== id);
-    fs.writeFile(TODOS_FILE, JSON.stringify(todos, null, 4), logError);
-  });
+app.delete("/todos/:id", async (req, res) => {
+    var user = await users.reload(users.authenticate(req));
+    let id = req.params.id;
+    delete user.todos[id];
+    users.updateUser(user);
 });
 
-app.post("/login", (req, res) => {
-  fs.readFile(USERS_FILE, (err, data) => {
-    logError(err);
-    let users = JSON.parse(data);
-    let user = users.filter(user => user.username === req.body.username && user.password === req.body.password)[0];
-    let jwtUser = {};
-    if (user) {
-      jwtUser = { id: user.id, username: user.username }
-      jwt.sign(
-        jwtUser,
-        process.env.PRIVATE_KEY,
-        (err, token) => {
-          if (err) {
-            res.status(401).send(err);
-          } else {
-            res.json({ token: token });
-          }
-        }
-      );
+app.put("/todos/:id", async (req, res) => {
+    var user = await users.reload(users.authenticate(req));
+    let id = req.params.id;
+    let newToDo = user.todos[id];
+    newToDo.status = req.body.status;
+    users.updateToDo(user, user.todos[id]);
+})
+
+app.post("/login", async (req, res) => {
+    let { username, password } = req.body;
+    let user = await users.findUser(username);
+    if (user && user.password == password) {
+        jwt.sign({ id: user.id, username: user.username },
+            process.env.PRIVATE_KEY,
+            (err, token) => {
+                if (err) {
+                    res.status(401).send(err);
+                } else {
+                    res.json({ token: token });
+                }
+            }
+        );
     } else {
-      res.status(401).send({ error: 'Something\'s wrong!' });
-    };
-  });
+        res.status(401).send({ error: 'Something\'s wrong!' });
+    }
 });
 
 app.listen(app.get("port"), () => {
-  console.log("Server started: http://localhost:" + app.get("port") + "/");
+    console.log("Server started: http://localhost:" + app.get("port") + "/");
 });

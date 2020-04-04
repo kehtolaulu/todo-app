@@ -1,10 +1,10 @@
 const { Router } = require("express");
-const router = Router();
-const { check, validationResult } = require("express-validator");
+const { check } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-require("dotenv").config({ path: "var.env" });
 const validate = require("../middleware/validation");
+
+const router = Router();
 
 router.post(
     "",

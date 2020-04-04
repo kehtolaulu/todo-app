@@ -1,10 +1,11 @@
 const { Router } = require("express");
-const router = Router();
-const { check, validationResult } = require("express-validator");
+const { check } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const validate = require("../middleware/validation");
+
+const router = Router();
 
 router.post(
     "",
@@ -18,7 +19,7 @@ router.post(
         if (token) {
             res.json({ token });
         } else {
-            res.status(400).json({message: "Bad credentials"});
+            res.status(400).json({ message: "Bad credentials" });
         }
     }
 );
@@ -26,15 +27,13 @@ router.post(
 const authenticate = async (username, password) => {
     const user = await User.findOne({ username });
     const correctPassword = await bcrypt.compare(password, (user && user.password) || "");
-    if (correctPassword) {
-        return jwt.sign(
-            { userId: user.id },
-            process.env.PRIVATE_KEY
-            /*{ expiresIn: "1h" }*/
-        );
-    } else {
-        return null;
-    }
+    if (!correctPassword) return null;
+
+    return jwt.sign(
+        { userId: user.id },
+        process.env.PRIVATE_KEY
+        /*{ expiresIn: "1h" }*/
+    );
 };
 
 module.exports = router;

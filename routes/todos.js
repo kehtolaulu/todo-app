@@ -1,7 +1,8 @@
 const { Router } = require("express");
+const ToDo = require("../models/ToDo");
+const auth = require("../middleware/auth");
+
 const router = Router();
-const ToDo = require("../models/ToDo")
-const auth = require("../middleware/auth")
 
 router.get("", auth, async (req, res) => {
     try {

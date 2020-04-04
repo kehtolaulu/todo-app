@@ -14,7 +14,9 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.7"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"

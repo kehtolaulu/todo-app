@@ -11,9 +11,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(require("./middleware/cors"));
 
-app.use("/login", require("./routes/login"));
-app.use("/signup", require("./routes/signup"));
-app.use("/todos", require("./routes/todos"));
+app.use("/login", require("./routes/logIn"));
+app.use("/signup", require("./routes/signUp"));
+app.use("/todos", require("./routes/toDos"));
+app.use("/todo_lists", require("./routes/toDoLists"));
 
 app.use(cors());
 

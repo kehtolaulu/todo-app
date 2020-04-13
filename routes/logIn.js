@@ -30,7 +30,7 @@ const authenticate = async (username, password) => {
     if (!correctPassword) return null;
 
     return jwt.sign(
-        { userId: user.id },
+        { userId: user.id, username: user.username },
         process.env.PRIVATE_KEY
         /*{ expiresIn: "1h" }*/
     );

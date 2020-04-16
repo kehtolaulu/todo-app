@@ -43,4 +43,27 @@ router.post("/:id/todos", auth, async (req, res) => {
     }
 });
 
+router.put("/:id/todos/:todoId", auth, async (req, res) => {
+    try {
+        let toDoList = await ToDoList.findOne({ _id: req.params.id });
+        let toDo = toDoList.toDos.filter(todo => todo.id === req.params.todoId)[0];
+        toDo.status = req.body.status;
+        toDoList.save();
+        res.status(200);
+    } catch (e) {
+        res.status(500);
+    }
+});
+
+router.delete("/:id/todos/:todoId", auth, async (req, res) => {
+    try {
+        let toDoList = await ToDoList.findOne({ _id: req.params.id });
+        toDoList.toDos = toDoList.toDos.filter(todo => todo.id !== req.params.todoId);
+        toDoList.save();
+        res.status(200);
+    } catch (e) {
+        res.status(500);
+    }
+});
+
 module.exports = router;

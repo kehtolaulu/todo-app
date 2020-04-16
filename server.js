@@ -13,7 +13,6 @@ app.use(require("./middleware/cors"));
 
 app.use("/login", require("./routes/logIn"));
 app.use("/signup", require("./routes/signUp"));
-app.use("/todos", require("./routes/toDos"));
 app.use("/todo_lists", require("./routes/toDoLists"));
 
 app.use(cors());

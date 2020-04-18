@@ -16,6 +16,18 @@ router.get("", auth, async (req, res) => {
     }
 });
 
+router.post("", auth, async (req, res) => {
+    try {
+        let user = await User.findOne({ username: req.user.username });
+        let list = await ToDoList.create({ title: req.body.title });
+        user.toDoLists.push(list);
+        user.save();
+        res.status(200);
+    } catch (e) {
+        res.status(500);
+    }
+});
+
 router.get("/:id/todos", auth, async (req, res) => {
     try {
         let toDoList = await ToDoList.findOne({ _id: req.params.id });

@@ -22,7 +22,7 @@ router.post("", auth, async (req, res) => {
         let list = await ToDoList.create({ title: req.body.title });
         user.toDoLists.push(list);
         user.save();
-        res.status(200);
+        res.status(200).json({ list });
     } catch (e) {
         res.status(500);
     }

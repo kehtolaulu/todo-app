@@ -4,7 +4,6 @@ const ToDoList = require("./ToDoList").schema;
 const schema = new Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    toDos: [{ type: Types.ObjectId, ref: "ToDo" }],
     toDoLists: [ToDoList]
 });
 
